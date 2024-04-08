@@ -30,7 +30,6 @@ export type ArticleResponse = {
 
 export type UserResponse = {
   username: string;
-  email?: string;
   bio: string | null;
   image: string | null;
   following: boolean;

@@ -23,7 +23,6 @@ export const toResponseUser = (
     }
   }
   return {
-    email: userToConvert?.email,
     username: userToConvert?.username,
     bio: userToConvert?.bio,
     image: userToConvert?.image,
