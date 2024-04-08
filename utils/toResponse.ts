@@ -1,35 +1,38 @@
 import {
   ArticleFavorited,
   ArticleResponse,
+  CommentResponse,
   SafeUser,
   UserFollow,
   UserResponse,
 } from "@/types/user";
 
+import { type Comments } from ".prisma/client";
+
 export const toResponseUser = (
-  user: UserFollow,
-  currentUser: SafeUser | null
+  userToConvert: UserFollow,
+  requestingUser: SafeUser | null
 ): UserResponse => {
-  let following: boolean = false;
-  const f = user.followedBy.map((item) => {
-    return item.followerId;
+  let isFollowing: boolean = false;
+  const followersIds = userToConvert.followedBy.map((follower) => {
+    return follower.followerId;
   });
-  if (currentUser) {
-    if (f.includes(currentUser?.id)) {
-      following = true;
+  if (requestingUser) {
+    if (followersIds.includes(requestingUser?.id)) {
+      isFollowing = true;
     }
   }
   return {
-    email: user?.email,
-    username: user?.username,
-    bio: user?.bio,
-    image: user?.image,
-    following: currentUser ? following : false,
+    email: userToConvert?.email,
+    username: userToConvert?.username,
+    bio: userToConvert?.bio,
+    image: userToConvert?.image,
+    following: requestingUser ? isFollowing : false,
   };
 };
 
 export const toResponseArticle = (
-  article: ArticleFavorited,
+  article: ArticleFavorited & { author: UserFollow },
   currentUser: SafeUser | null
 ): ArticleResponse => {
   let favorited: boolean = false;
@@ -49,11 +52,20 @@ export const toResponseArticle = (
     createdAt: article.createdAt,
     updatedAt: article.updatedAt,
     favorited: favorited,
-    author: {
-      username: article.author.username,
-      bio: article.author.bio,
-      image: article.author.image,
-    },
+    author: toResponseUser(article.author, currentUser),
     favoritesCount: article.favoritesCount,
+  };
+};
+
+export const toResponseComment = (
+  comment: Comments & { author: UserFollow },
+  currentUser: SafeUser | null
+): CommentResponse => {
+  return {
+    id: comment.id,
+    body: comment.body,
+    createdAt: comment.createdAt,
+    updatedAt: comment.updatedAt,
+    author: toResponseUser(comment.author, currentUser),
   };
 };

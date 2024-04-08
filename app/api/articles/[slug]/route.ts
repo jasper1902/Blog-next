@@ -20,6 +20,6 @@ export const GET = async (
       article: toResponseArticle(article, currentUser),
     });
   } catch (error) {
-    ApiResponse.badRequest(error);
+    return ApiResponse.badRequest(error);
   }
 };

@@ -50,6 +50,7 @@ model User {
   favourites    Favourites[]
   followedBy    Follows[]    @relation("following")
   following     Follows[]    @relation("follower")
+  comments      Comments[]
 
   @@map("user")
 }
@@ -85,6 +86,7 @@ model Article {
   Account        Account?     @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId      String?      @db.ObjectId
   favourites     Favourites[]
+  comments       Comments[]
 
   @@map("article")
 }
@@ -98,4 +100,17 @@ model Favourites {
 
   @@unique([articleId, userId])
   @@map("favourites")
+}
+
+model Comments {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  body      String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String   @db.ObjectId
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("comment")
 }

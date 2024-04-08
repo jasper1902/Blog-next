@@ -8,6 +8,9 @@ import React, { Fragment, useEffect, useState } from "react";
 import Image from "next/image";
 import { defaultImage } from "@/utils/mapper";
 import Link from "next/link";
+import PostComment from "@/app/components/articles/PostComment";
+import Comments from "@/app/components/articles/CommentsList";
+import useToggleFollowStatus from "@/app/hooks/useToggleFollowStatus";
 
 type Props = {
   currentUser: SafeUser | null;
@@ -19,11 +22,22 @@ const ArticleDetail = ({ currentUser }: Props) => {
   const [favoritesCount, setFavoritesCount] = useState<number>(0);
   const [favorited, setFavorited] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [following, setFollowing] = useState<boolean | null | undefined>(null);
+  const { isFollowLoading, currentFollowing, toggleFollowStatus } =
+    useToggleFollowStatus();
 
   useEffect(() => {
     getArticle();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    setFollowing(article?.author.following);
+  }, [article?.author.following]);
+
+  useEffect(() => {
+    setFollowing(currentFollowing);
+  }, [currentFollowing]);
 
   const getArticle = async () => {
     try {
@@ -67,9 +81,18 @@ const ArticleDetail = ({ currentUser }: Props) => {
                 </a>
                 <span className="date">{formatDate(article?.createdAt)}</span>
               </div>
-              <button className="btn btn-sm btn-outline-secondary">
+              <button
+                className="btn btn-sm btn-outline-secondary"
+                disabled={isFollowLoading}
+                onClick={() =>
+                  following
+                    ? toggleFollowStatus("unfollow", currentUser?.username)
+                    : toggleFollowStatus("follow", currentUser?.username)
+                }
+              >
                 <i className="ion-plus-round"></i>
-                &nbsp; {article.author.username} <span className="counter">(10)</span>
+                &nbsp; {following ? "unfollow" : "follow"}{" "}
+                {article.author.username} <span className="counter"></span>
               </button>
               &nbsp;&nbsp;
               <button
@@ -152,9 +175,18 @@ const ArticleDetail = ({ currentUser }: Props) => {
                 </a>
                 <span className="date">{formatDate(article?.createdAt)}</span>
               </div>
-              <button className="btn btn-sm btn-outline-secondary">
+              <button
+                className="btn btn-sm btn-outline-secondary"
+                disabled={isFollowLoading}
+                onClick={() =>
+                  following
+                    ? toggleFollowStatus("unfollow", currentUser?.username)
+                    : toggleFollowStatus("follow", currentUser?.username)
+                }
+              >
                 <i className="ion-plus-round"></i>
-                &nbsp; Follow Eric Simons
+                &nbsp; {following ? "unfollow" : "follow"}{" "}
+                {article.author.username}
               </button>
               &nbsp;
               <button
@@ -201,91 +233,7 @@ const ArticleDetail = ({ currentUser }: Props) => {
             </div>
           </div>
 
-          <div className="row">
-            <div className="col-xs-12 col-md-8 offset-md-2">
-              {currentUser && (
-                <>
-                  <form className="card comment-form">
-                    <div className="card-block">
-                      <textarea
-                        className="form-control"
-                        placeholder="Write a comment..."
-                        rows={3}
-                      ></textarea>
-                    </div>
-                    <div className="card-footer">
-                      {/* <img
-                        src={currentUser.image}
-                        alt="avatar"
-                        width={100}
-                        height={100}
-                        className="comment-author-img"
-                      /> */}
-
-                      <Image
-                        src={currentUser.image || defaultImage}
-                        className="comment-author-img"
-                        alt="avatar"
-                        width={100}
-                        height={100}
-                      />
-
-                      <button className="btn btn-sm btn-primary">
-                        Post Comment
-                      </button>
-                    </div>
-                  </form>
-                </>
-              )}
-
-              {/* <div className="card">
-                <div className="card-block">
-                  <p className="card-text">
-                    With supporting text below as a natural lead-in to
-                    additional content.
-                  </p>
-                </div>
-                <div className="card-footer">
-                  <Link href="/profile/author" className="comment-author">
-                    <img
-                      src="http://i.imgur.com/Qr71crq.jpg"
-                      className="comment-author-img"
-                    />
-                  </Link>
-                  &nbsp;
-                  <Link href="/profile/jacob-schmidt" className="comment-author">
-                    Jacob Schmidt
-                  </Link>
-                  <span className="date-posted">Dec 29th</span>
-                </div>
-              </div>
-
-              <div className="card">
-                <div className="card-block">
-                  <p className="card-text">
-                    With supporting text below as a natural lead-in to
-                    additional content.
-                  </p>
-                </div>
-                <div className="card-footer">
-                  <Link href="/profile/author" className="comment-author">
-                    <img
-                      src="http://i.imgur.com/Qr71crq.jpg"
-                      className="comment-author-img"
-                    />
-                  </Link>
-                  &nbsp;
-                  <Link href="/profile/jacob-schmidt" className="comment-author">
-                    Jacob Schmidt
-                  </Link>
-                  <span className="date-posted">Dec 29th</span>
-                  <span className="mod-options">
-                    <i className="ion-trash-a"></i>
-                  </span>
-                </div>
-              </div> */}
-            </div>
-          </div>
+          <Comments currentUser={currentUser} />
         </div>
       </div>
     </>

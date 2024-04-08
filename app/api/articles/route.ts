@@ -24,7 +24,12 @@ export const POST = async (request: NextRequest) => {
         tags: body.articles.tagList,
       },
       include: {
-        author: true,
+        author: {
+          include: {
+            followedBy: true,
+            following: true,
+          },
+        },
         favourites: true,
       },
     });
@@ -89,7 +94,12 @@ export const GET = async (request: NextRequest) => {
         createdAt: "desc",
       },
       include: {
-        author: true,
+        author: {
+          include: {
+            followedBy: true,
+            following: true,
+          },
+        },
         favourites: true,
       },
       skip: limit * (page - 1),

@@ -26,7 +26,7 @@ export type ArticleResponse = {
   updatedAt: Date;
   favorited: boolean;
   favoritesCount: number;
-} & { author: { username: string; bio: string | null; image: string | null } };
+} & { author: UserResponse };
 
 export type UserResponse = {
   username: string;
@@ -40,3 +40,10 @@ export type UserFollow = User & {
   followedBy: Follows[];
   following: Follows[];
 };
+
+export type CommentResponse = {
+  id: string;
+  body: String;
+  createdAt: Date;
+  updatedAt: Date;
+} & { author: UserResponse };

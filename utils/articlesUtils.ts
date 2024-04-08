@@ -12,7 +12,12 @@ export async function revalidate(slug: string) {
 export async function findArticleBySlug(slug: string) {
   const articleInclude = {
     include: {
-      author: true,
+      author: {
+        include: {
+          followedBy: true,
+          following: true,
+        },
+      },
       favourites: true,
     },
   };
