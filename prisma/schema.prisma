@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String    @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?   @db.String
+  access_token      String?   @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?   @db.String
+  session_state     String?
+  favouriteArticles Article[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("account")
+}
+
+model User {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  username      String
+  email         String       @unique
+  emailVerified DateTime?
+  image         String?      @default("https://static.productionready.io/images/smiley-cyrus.jpg")
+  password      String
+  bio           String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  role          Role         @default(USER)
+  account       Account[]
+  article       Article[]
+  favourites    Favourites[]
+  followedBy    Follows[]    @relation("following")
+  following     Follows[]    @relation("follower")
+
+  @@map("user")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Follows {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  follower    User   @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followerId  String @db.ObjectId
+  following   User   @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  followingId String @db.ObjectId
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model Article {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  slug           String       @unique
+  title          String
+  description    String
+  body           String
+  favoritesCount Int          @default(0) @map("favorites_count")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId       String       @db.ObjectId
+  tags           String[]
+  Account        Account?     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId      String?      @db.ObjectId
+  favourites     Favourites[]
+
+  @@map("article")
+}
+
+model Favourites {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  favoriting  Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId   String  @db.ObjectId
+  favoritedBy User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String  @db.ObjectId
+
+  @@unique([articleId, userId])
+  @@map("favourites")
+}
