@@ -6,22 +6,23 @@ import React, { useEffect, useState } from "react";
 import ArticlesContainer from "@/app/components/articles/ArticlesContainer";
 import Image from "next/image";
 import { defaultImage } from "@/utils/mapper";
-import Paginator from "@/app/components/Paginator";
+import Paginator from "@/app/components/Pagination";
 import useToggleFollowStatus from "@/app/hooks/useToggleFollowStatus";
 import useProfile from "@/app/hooks/useProfile";
 
 type Props = {
   currentUser: SafeUser | null;
   page: number;
+  tab: string;
 };
 
-const ProfilePage = ({ currentUser, page }: Props) => {
-  const params = useParams<{ username: string }>();
+const ProfilePage = ({ currentUser, page, tab = "true" }: Props) => {
+  const params = useParams<{ username: string; tab: string }>();
   const router = useRouter();
   const [articles, setArticles] = useState<ArticleResponse[]>();
   const [user, setUser] = useState<UserResponse | null>(null);
   const [totalPages, setTotalPages] = useState(0);
-  const [isTapbarMyArticles, setIsTapbarMyArticles] = useState(true);
+  const [isTapbarMyArticles, setIsTapbarMyArticles] = useState<boolean>(true);
   const [following, setFollowing] = useState<boolean | null | undefined>(null);
   const { isFollowLoading, currentFollowing, toggleFollowStatus } =
     useToggleFollowStatus();
@@ -31,7 +32,7 @@ const ProfilePage = ({ currentUser, page }: Props) => {
       fetchProfileAndArticles(params?.username);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isTapbarMyArticles, page]);
+  }, [page, isTapbarMyArticles]);
 
   useEffect(() => {
     setFollowing(user?.following);
@@ -44,6 +45,10 @@ const ProfilePage = ({ currentUser, page }: Props) => {
   useEffect(() => {
     setUser(profile);
   }, [profile]);
+
+  useEffect(() => {
+    setIsTapbarMyArticles(tab === "true");
+  }, [tab]);
 
   const fetchProfileAndArticles = async (username: string) => {
     try {
@@ -85,7 +90,6 @@ const ProfilePage = ({ currentUser, page }: Props) => {
       console.log(error);
     }
   };
-
   return (
     <>
       <div className="profile-page">
@@ -143,22 +147,26 @@ const ProfilePage = ({ currentUser, page }: Props) => {
             <div className="col-xs-12 col-md-10 offset-md-1">
               <div className="articles-toggle">
                 <ul className="nav nav-pills outline-active">
-                  <li className="nav-item">
+                  <li
+                    className="nav-item"
+                    onClick={() => setIsTapbarMyArticles(true)}
+                  >
                     <div
                       className={`nav-link cursor-pointer ${
                         isTapbarMyArticles && "active"
                       }`}
-                      onClick={() => setIsTapbarMyArticles(true)}
                     >
                       My Articles
                     </div>
                   </li>
-                  <li className="nav-item">
+                  <li
+                    className="nav-item"
+                    onClick={() => setIsTapbarMyArticles(false)}
+                  >
                     <div
                       className={`nav-link cursor-pointer ${
                         !isTapbarMyArticles && "active"
                       }`}
-                      onClick={() => setIsTapbarMyArticles(false)}
                     >
                       Favorited Articles
                     </div>
@@ -172,6 +180,7 @@ const ProfilePage = ({ currentUser, page }: Props) => {
                 totalPages={totalPages}
                 page={page}
                 redirect={`/profile/${params?.username}`}
+                query={`&tab=${isTapbarMyArticles}`}
               />
             </div>
           </div>

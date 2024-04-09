@@ -2,7 +2,7 @@ import Image from "next/image";
 import Tags from "./components/Tags";
 import ArticlesContainer from "./components/articles/ArticlesContainer";
 import { getGlobalFeed } from "@/actions/getArticles";
-import Paginator from "./components/Paginator";
+import Paginator from "./components/Pagination";
 import Link from "next/link";
 
 export default async function Home({
