@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { CommentResponse, SafeUser } from "@/types/user";
 import Comment from "./Comment";
 import axios from "axios";
+import Link from "next/link";
 
 type Props = {
   currentUser: SafeUser | null;
@@ -15,7 +16,7 @@ const Comments = ({ currentUser }: Props) => {
   const [comments, setComments] = useState<CommentResponse[] | null>(null);
   useEffect(() => {
     getComments();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getComments = async () => {
@@ -31,21 +32,32 @@ const Comments = ({ currentUser }: Props) => {
 
   return (
     <>
-      <div className="row">
-        <div className="col-xs-12 col-md-8 offset-md-2">
-          <PostComment
-            currentUser={currentUser}
-            slug={params?.slug}
-            setComments={setComments}
-          />
+      {currentUser ? (
+        <div className="row">
+          <div className="col-xs-12 col-md-8 offset-md-2">
+            <PostComment
+              currentUser={currentUser}
+              slug={params?.slug}
+              setComments={setComments}
+            />
 
-          {comments?.map((comment: CommentResponse) => (
-            <Fragment key={comment.id}>
-              <Comment comment={comment} currentUser={currentUser} setComments={setComments}/>
-            </Fragment>
-          ))}
+            {comments?.map((comment: CommentResponse) => (
+              <Fragment key={comment.id}>
+                <Comment
+                  comment={comment}
+                  currentUser={currentUser}
+                  setComments={setComments}
+                />
+              </Fragment>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <p className="text-center text-xl text-bold">
+          <Link href="/login">Sign in</Link> or{" "}
+          <Link href="/register">sign up</Link> to add comments on this article.
+        </p>
+      )}
     </>
   );
 };

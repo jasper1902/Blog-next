@@ -90,6 +90,13 @@ const ProfilePage = ({ currentUser, page, tab = "true" }: Props) => {
       console.log(error);
     }
   };
+
+  const handleToggleFollow = () => {
+    following
+      ? toggleFollowStatus("unfollow", params?.username)
+      : toggleFollowStatus("follow", params?.username);
+  };
+  
   return (
     <>
       <div className="profile-page">
@@ -124,11 +131,7 @@ const ProfilePage = ({ currentUser, page, tab = "true" }: Props) => {
                       <button
                         disabled={isFollowLoading}
                         className="btn btn-sm btn-outline-secondary action-btn"
-                        onClick={() =>
-                          following
-                            ? toggleFollowStatus("unfollow", params?.username)
-                            : toggleFollowStatus("follow", params?.username)
-                        }
+                        onClick={handleToggleFollow}
                       >
                         <i className="ion-plus-round"></i>
                         &nbsp; {following ? "unfollow" : "follow"}{" "}
@@ -174,7 +177,10 @@ const ProfilePage = ({ currentUser, page, tab = "true" }: Props) => {
                 </ul>
               </div>
 
-              <ArticlesContainer articles={articles} />
+              <ArticlesContainer
+                articles={articles}
+                currentUser={currentUser}
+              />
 
               <Paginator
                 totalPages={totalPages}

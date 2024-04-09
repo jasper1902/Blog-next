@@ -1,6 +1,6 @@
 import { formatDate } from "@/utils/formatDate";
 import React, { Fragment } from "react";
-import { ArticleResponse } from "@/types/user";
+import { ArticleResponse, SafeUser } from "@/types/user";
 import { defaultImage } from "@/utils/mapper";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,9 +8,10 @@ import FavoriteButton from "./FavoriteButton";
 
 type Props = {
   article: ArticleResponse;
+  currentUser: SafeUser | null
 };
 
-const ArticlePreview = ({ article }: Props) => {
+const ArticlePreview = ({ article, currentUser }: Props) => {
   return (
     <>
       <div className="article-preview" key={article.slug}>
@@ -32,7 +33,7 @@ const ArticlePreview = ({ article }: Props) => {
             </Link>
             <span className="date">{formatDate(article.createdAt)}</span>
           </div>
-          <FavoriteButton article={article} />
+          <FavoriteButton article={article} currentUser={currentUser} className="pull-xs-right"/>
         </div>
         <a href={`/article/${article.slug}`} className="preview-link">
           <h1>{article.title}</h1>

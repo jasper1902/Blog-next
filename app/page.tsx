@@ -4,12 +4,14 @@ import ArticlesContainer from "./components/articles/ArticlesContainer";
 import { getGlobalFeed } from "@/actions/getArticles";
 import Paginator from "./components/Pagination";
 import Link from "next/link";
+import { getCurrentUser } from "@/actions/getCurrentUser";
 
 export default async function Home({
   searchParams,
 }: {
   searchParams: { page: string };
 }) {
+  const currentUser = await getCurrentUser()
   let page = parseInt(searchParams.page, 10);
   page = !page || page < 1 ? 1 : page;
   const articles = await getGlobalFeed(10, page);
@@ -41,7 +43,7 @@ export default async function Home({
                 </ul>
               </div>
 
-              <ArticlesContainer articles={articles?.article} />
+              <ArticlesContainer articles={articles?.article} currentUser={currentUser}/>
               <Paginator totalPages={articles?.totalPages} page={page} />
             </div>
 

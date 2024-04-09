@@ -1,15 +1,20 @@
 "use client";
-import { ArticleResponse } from "@/types/user";
+import { ArticleResponse, SafeUser } from "@/types/user";
 import { updateFavorite } from "@/utils/articlesUtils";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 type Props = {
   article: ArticleResponse;
+  currentUser: SafeUser | null;
+  className?: string;
+  title?: string;
 };
 
-const FavoriteButton = ({ article }: Props) => {
+const FavoriteButton = ({ article, currentUser, className, title }: Props) => {
   const [favorited, setFavorited] = useState<boolean>(article.favorited);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const router = useRouter();
 
   const [favoritesCount, setFavoritesCount] = useState<number>(
     article.favoritesCount
@@ -19,29 +24,35 @@ const FavoriteButton = ({ article }: Props) => {
       <button
         className={`btn ${
           favorited ? "btn-primary" : "btn-outline-primary"
-        } btn-sm pull-xs-right`}
+        } btn-sm ${className}`}
         disabled={isLoading}
-        onClick={() =>
-          favorited
-            ? updateFavorite(
-                article.slug,
-                setFavoritesCount,
-                favoritesCount,
-                setFavorited,
-                setIsLoading,
-                "remove"
-              )
-            : updateFavorite(
-                article.slug,
-                setFavoritesCount,
-                favoritesCount,
-                setFavorited,
-                setIsLoading,
-                "add"
-              )
-        }
+        onClick={() => {
+          if (currentUser) {
+            favorited
+              ? updateFavorite(
+                  article.slug,
+                  setFavoritesCount,
+                  favoritesCount,
+                  setFavorited,
+                  setIsLoading,
+                  "remove"
+                )
+              : updateFavorite(
+                  article.slug,
+                  setFavoritesCount,
+                  favoritesCount,
+                  setFavorited,
+                  setIsLoading,
+                  "add"
+                );
+          } else {
+            router.push("/login");
+          }
+        }}
       >
-        <i className="ion-heart"></i> {favoritesCount}
+        {title}
+        <i className="ion-heart"></i>{" "}
+        {title ? `(${favoritesCount})` : favoritesCount}
       </button>
     </>
   );
