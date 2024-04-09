@@ -13,6 +13,7 @@ const EditorForm = (props: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [tags, setTags] = useState<String[]>([]);
+  const [error, setError] = useState("");
   const {
     register,
     handleSubmit,
@@ -58,7 +59,12 @@ const EditorForm = (props: Props) => {
         router.refresh();
       }
     } catch (error) {
-      console.log("Something went wrong");
+      if (axios.isAxiosError(error)) {
+        const errorMessage =
+          error.response?.data.errors[0] || "An error occurred";
+        console.error("Error fetching profile:", errorMessage);
+        setError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -69,9 +75,9 @@ const EditorForm = (props: Props) => {
       <div className="container page">
         <div className="row">
           <div className="col-md-10 offset-md-1 col-xs-12">
-            {/* <ul className="error-messages">
-              <li>That title is required</li>
-            </ul> */}
+            <ul className="error-messages">
+              <li>{error}</li>
+            </ul>
 
             <form>
               <fieldset>

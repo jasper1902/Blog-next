@@ -14,6 +14,34 @@ export const PUT = async (request: NextRequest) => {
     }
 
     const body = await request.json();
+
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          {
+            email: {
+              equals: body.user.email,
+              mode: "insensitive",
+            },
+          },
+          {
+            username: {
+              equals: body.user.username,
+              mode: "insensitive",
+            },
+          },
+        ],
+      },
+    });
+
+    if (existingUser) {
+      if (existingUser.email === body.user.email) {
+        return ApiResponse.badRequest("That email is already taken");
+      } else {
+        return ApiResponse.badRequest("That username is already taken");
+      }
+    }
+
     let hashedPassword;
     if (body.user.password) {
       hashedPassword = await bcrypt.hash(body.user.password, 10);

@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/actions/getCurrentUser";
 import { type NextRequest } from "next/server";
 import { toResponseArticle } from "@/utils/toResponse";
 import slugify from "slugify";
+import { findArticleBySlug } from "@/utils/articlesUtils";
 export const POST = async (request: NextRequest) => {
   try {
     const currentUser = await getCurrentUser();
@@ -14,15 +15,23 @@ export const POST = async (request: NextRequest) => {
 
     const body = await request.json();
 
+    const existingArticle = await findArticleBySlug(slugify(body.articles.title));
+
+    if (existingArticle) {
+      return ApiResponse.badRequest("Title already exists");
+    }
+
+    const newArticleData = {
+      title: body.articles.title,
+      description: body.articles.description,
+      body: body.articles.body,
+      slug: slugify(body.articles.title),
+      authorId: currentUser.id,
+      tags: body.articles.tagList,
+    };
+
     const article = await prisma.article.create({
-      data: {
-        title: body.articles.title,
-        description: body.articles.description,
-        body: body.articles.body,
-        slug: slugify(body.articles.title),
-        authorId: currentUser.id,
-        tags: body.articles.tagList,
-      },
+      data: newArticleData,
       include: {
         author: {
           include: {
@@ -40,7 +49,6 @@ export const POST = async (request: NextRequest) => {
     return ApiResponse.badRequest("Create article failed");
   }
 };
-
 export const GET = async (request: NextRequest) => {
   try {
     const currentUser = await getCurrentUser();

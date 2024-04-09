@@ -9,14 +9,41 @@ export const POST = async (request: NextRequest) => {
     const body = await request.json();
     const { username, email, password } = body.user;
 
-    const result = userRegisterSchema.safeParse(body.user);
-    if (!result.success) {
-      return ApiResponse.badRequest(result.error);
+    const validationResult = userRegisterSchema.safeParse(body.user);
+    if (!validationResult.success) {
+      return ApiResponse.badRequest(validationResult.error);
+    }
+
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          {
+            email: {
+              equals: email,
+              mode: "insensitive",
+            },
+          },
+          {
+            username: {
+              equals: username,
+              mode: "insensitive",
+            },
+          },
+        ],
+      },
+    });
+
+    if (existingUser) {
+      if (existingUser.email === email) {
+        return ApiResponse.badRequest("That email is already taken");
+      } else {
+        return ApiResponse.badRequest("That username is already taken");
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         username: username,
         email: email,
@@ -24,7 +51,7 @@ export const POST = async (request: NextRequest) => {
       },
     });
 
-    return ApiResponse.ok({ user });
+    return ApiResponse.ok({ user: newUser });
   } catch (error) {
     return ApiResponse.badRequest("Register failed");
   }

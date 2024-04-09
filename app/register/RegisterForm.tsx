@@ -7,7 +7,7 @@ import { signIn } from "next-auth/react";
 import Input from "../components/input/Input";
 import { SafeUser } from "@/types/user";
 import { useRedirectBasedOnUserPresence } from "../hooks/useLogin";
-import Link from 'next/link'
+import Link from "next/link";
 
 type Props = {
   currentUser: SafeUser | null;
@@ -15,6 +15,7 @@ type Props = {
 
 const RegisterForm = ({ currentUser }: Props) => {
   const router = useRouter();
+  const [error, setError] = useState();
 
   useRedirectBasedOnUserPresence(currentUser, "/", false);
 
@@ -53,7 +54,12 @@ const RegisterForm = ({ currentUser }: Props) => {
       }
       console.log(data);
     } catch (error) {
-      console.log(error);
+      if (axios.isAxiosError(error)) {
+        const errorMessage =
+          error.response?.data.errors[0] || "An error occurred";
+        console.error("Error fetching profile:", errorMessage);
+        setError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -71,10 +77,10 @@ const RegisterForm = ({ currentUser }: Props) => {
             <div className="col-md-6 offset-md-3 col-xs-12">
               <h1 className="text-xs-center">Sign up</h1>
               <p className="text-xs-center">
-                <Link  href="/login">Have an account?</Link>
+                <Link href="/login">Have an account?</Link>
               </p>
               <ul className="error-messages">
-                {/* <li>That email is already taken</li> */}
+                <li>{error}</li>
               </ul>
 
               <div>

@@ -5,7 +5,6 @@ import { type NextRequest } from "next/server";
 export const GET = async (request: NextRequest) => {
   try {
     const articles = await prisma.article.findMany({
-      take: 30,
       select: {
         tags: true,
       },
