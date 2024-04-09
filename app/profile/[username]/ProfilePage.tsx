@@ -24,6 +24,7 @@ const ProfilePage = ({ currentUser, page, tab = "true" }: Props) => {
   const [totalPages, setTotalPages] = useState(0);
   const [isTapbarMyArticles, setIsTapbarMyArticles] = useState<boolean>(true);
   const [following, setFollowing] = useState<boolean | null | undefined>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const { isFollowLoading, currentFollowing, toggleFollowStatus } =
     useToggleFollowStatus();
   const { profile, getProfile } = useProfile();
@@ -32,7 +33,7 @@ const ProfilePage = ({ currentUser, page, tab = "true" }: Props) => {
       fetchProfileAndArticles(params?.username);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, isTapbarMyArticles]);
+  }, [currentPage, isTapbarMyArticles]);
 
   useEffect(() => {
     setFollowing(user?.following);
@@ -50,13 +51,24 @@ const ProfilePage = ({ currentUser, page, tab = "true" }: Props) => {
     setIsTapbarMyArticles(tab === "true");
   }, [tab]);
 
+  useEffect(() => {
+    if (page > totalPages) {
+      setCurrentPage(1);
+      router.push(
+        `/profile/${params?.username}?page=${currentPage}&tab=${tab}`
+      );
+    } else {
+      setCurrentPage(page);
+    }
+  }, [currentPage, page, params?.username, router, tab, totalPages]);
+
   const fetchProfileAndArticles = async (username: string) => {
     try {
       await getProfile(username);
       if (isTapbarMyArticles) {
-        await fetchArticlesByUser(username, page);
+        await fetchArticlesByUser(username, currentPage);
       } else {
-        await fetchArticlesByFavorited(username, page);
+        await fetchArticlesByFavorited(username, currentPage);
       }
     } catch (error) {
       console.log(error);
@@ -96,7 +108,7 @@ const ProfilePage = ({ currentUser, page, tab = "true" }: Props) => {
       ? toggleFollowStatus("unfollow", params?.username)
       : toggleFollowStatus("follow", params?.username);
   };
-  
+
   return (
     <>
       <div className="profile-page">
@@ -184,7 +196,7 @@ const ProfilePage = ({ currentUser, page, tab = "true" }: Props) => {
 
               <Paginator
                 totalPages={totalPages}
-                page={page}
+                page={currentPage}
                 redirect={`/profile/${params?.username}`}
                 query={`&tab=${isTapbarMyArticles}`}
               />
