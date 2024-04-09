@@ -23,3 +23,31 @@ export const GET = async (
     return ApiResponse.badRequest(error);
   }
 };
+
+export const DELETE = async (
+  request: NextRequest,
+  { params }: { params: { slug: string } }
+) => {
+  try {
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return ApiResponse.unauthorized();
+    }
+
+    const article = await findArticleBySlug(params.slug);
+    if (!article) {
+      return ApiResponse.notFound("Article not exists");
+    }
+
+    if (article.author.id !== currentUser.id) {
+      return ApiResponse.forbidden();
+    }
+
+    await prisma?.article.delete({ where: { slug: params.slug } });
+
+    return ApiResponse.noContent();
+  } catch (error) {
+    return ApiResponse.badRequest(error);
+  }
+};

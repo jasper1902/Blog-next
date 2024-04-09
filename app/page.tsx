@@ -12,7 +12,7 @@ export default async function Home({
 }) {
   let page = parseInt(searchParams.page, 10);
   page = !page || page < 1 ? 1 : page;
-  const articles = await getGlobalFeed(5, page);
+  const articles = await getGlobalFeed(10, page);
   return (
     <>
       <div className="home-page">

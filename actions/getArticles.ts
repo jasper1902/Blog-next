@@ -5,7 +5,7 @@ export const getGlobalFeed = async (limit: number, page: number) => {
   const currentUser = await getCurrentUser();
   try {
     const articles = await prisma.article.findMany({
-      take: 5,
+      take: limit,
       orderBy: {
         createdAt: "desc",
       },

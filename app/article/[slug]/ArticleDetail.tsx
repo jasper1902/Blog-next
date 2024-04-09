@@ -3,12 +3,11 @@ import { ArticleResponse, SafeUser } from "@/types/user";
 import { updateFavorite } from "@/utils/articlesUtils";
 import { formatDate } from "@/utils/formatDate";
 import axios from "axios";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { Fragment, useEffect, useState } from "react";
 import Image from "next/image";
 import { defaultImage } from "@/utils/mapper";
 import Link from "next/link";
-import PostComment from "@/app/components/articles/PostComment";
 import Comments from "@/app/components/articles/CommentsList";
 import useToggleFollowStatus from "@/app/hooks/useToggleFollowStatus";
 
@@ -18,6 +17,7 @@ type Props = {
 
 const ArticleDetail = ({ currentUser }: Props) => {
   const params = useParams<{ slug: string }>();
+  const router = useRouter();
   const [article, setArticle] = useState<ArticleResponse | null>(null);
   const [favoritesCount, setFavoritesCount] = useState<number>(0);
   const [favorited, setFavorited] = useState<boolean>(false);
@@ -49,6 +49,21 @@ const ArticleDetail = ({ currentUser }: Props) => {
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const deleteArticle = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.delete(`/api/articles/${article?.slug}`);
+      if (response.status === 200) {
+        router.push("/");
+        router.refresh();
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -131,7 +146,7 @@ const ArticleDetail = ({ currentUser }: Props) => {
                   <button className="btn btn-sm btn-outline-secondary">
                     <i className="ion-edit"></i> Edit Article
                   </button>
-                  <button className="btn btn-sm btn-outline-danger">
+                  <button className="btn btn-sm btn-outline-danger" onClick={deleteArticle} disabled={isLoading}>
                     <i className="ion-trash-a"></i> Delete Article
                   </button>
                 </>
@@ -225,7 +240,7 @@ const ArticleDetail = ({ currentUser }: Props) => {
                   <button className="btn btn-sm btn-outline-secondary">
                     <i className="ion-edit"></i> Edit Article
                   </button>
-                  <button className="btn btn-sm btn-outline-danger">
+                  <button className="btn btn-sm btn-outline-danger" onClick={deleteArticle} disabled={isLoading}>
                     <i className="ion-trash-a"></i> Delete Article
                   </button>
                 </>

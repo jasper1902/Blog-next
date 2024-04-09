@@ -36,12 +36,13 @@ const Comment = ({ comment, currentUser, setComments }: Props) => {
 
   return (
     <>
-      <div className="card">
+      <div className="card ">
         <div className="card-block">
           <p className="card-text">{comment.body}</p>
         </div>
-        <div className="card-footer flex items-center justify-between">
-          <div>
+
+        <div className="px-[0.75rem] py-[1.25rem] bg-[#f5f5f5] shadow-inset  rounded-bl-lg rounded-br-lg flex items-center justify-between">
+          <div className="flex items-center gap-1">
             <Link href="/profile/author" className="comment-author">
               <Image
                 src={comment.author.image || defaultImage}
@@ -63,7 +64,7 @@ const Comment = ({ comment, currentUser, setComments }: Props) => {
           {comment.author.username === currentUser?.username && (
             <>
               <button
-                className="ml-52 btn btn-sm btn-danger"
+                className=" btn btn-sm btn-danger"
                 onClick={() => handleDeleteComment(comment.id)}
                 disabled={isLoading}
               >

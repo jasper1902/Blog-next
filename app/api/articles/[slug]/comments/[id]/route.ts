@@ -9,8 +9,18 @@ export const DELETE = async (
 ) => {
   try {
     const currentUser = await getCurrentUser();
+
     if (!currentUser) {
       return ApiResponse.unauthorized();
+    }
+
+    const comment = await prisma.comments.findUnique({
+      where: { id: params.id },
+      select: { authorId: true },
+    });
+
+    if (comment?.authorId !== currentUser.id) {
+      return ApiResponse.forbidden();
     }
 
     await prisma.comments.delete({
@@ -19,6 +29,6 @@ export const DELETE = async (
 
     return ApiResponse.noContent();
   } catch (error) {
-    return ApiResponse.badRequest("Error deleted comment");
+    return ApiResponse.badRequest("Error deleting comment");
   }
 };
