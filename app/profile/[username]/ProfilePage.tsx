@@ -12,198 +12,192 @@ import useProfile from "@/app/hooks/useProfile";
 
 type Props = {
   currentUser: SafeUser | null;
-  page: number;
-  tab: string;
+  currentPage: number;
+  currentTab: string;
 };
 
-const ProfilePage = ({ currentUser, page, tab = "true" }: Props) => {
+const ProfilePage = ({
+  currentUser,
+  currentPage,
+  currentTab = "true",
+}: Props) => {
   const params = useParams<{ username: string; tab: string }>();
   const router = useRouter();
-  const [articles, setArticles] = useState<ArticleResponse[]>();
-  const [user, setUser] = useState<UserResponse | null>(null);
-  const [totalPages, setTotalPages] = useState(0);
-  const [isTapbarMyArticles, setIsTapbarMyArticles] = useState<boolean>(true);
-  const [following, setFollowing] = useState<boolean | null | undefined>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [userArticles, setUserArticles] = useState<ArticleResponse[]>([]);
+  const [userProfile, setUserProfile] = useState<UserResponse | null>(null);
+  const [totalArticlePages, setTotalArticlePages] = useState(0);
+  const [isTabMyArticles, setIsTabMyArticles] = useState(true);
+  const [isFollowingUser, setIsFollowingUser] = useState<
+    boolean | null | undefined
+  >(null);
   const { isFollowLoading, currentFollowing, toggleFollowStatus } =
     useToggleFollowStatus();
   const { profile, getProfile } = useProfile();
+
   useEffect(() => {
     if (params?.username) {
-      fetchProfileAndArticles(params?.username);
+      fetchUserDataAndArticles(params.username);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, isTapbarMyArticles]);
+  }, [params?.username, currentPage, isTabMyArticles]);
 
   useEffect(() => {
-    setFollowing(user?.following);
-  }, [user]);
-
-  useEffect(() => {
-    setFollowing(currentFollowing);
-  }, [currentFollowing]);
-
-  useEffect(() => {
-    setUser(profile);
+    if (profile) {
+      setUserProfile(profile);
+    }
   }, [profile]);
 
   useEffect(() => {
-    setIsTapbarMyArticles(tab === "true");
-  }, [tab]);
+    setIsFollowingUser(userProfile?.following);
+  }, [userProfile]);
 
   useEffect(() => {
-    if (page > totalPages) {
-      setCurrentPage(1);
-      router.push(
-        `/profile/${params?.username}?page=${currentPage}&tab=${tab}`
-      );
-    } else {
-      setCurrentPage(page);
+    if (currentFollowing !== undefined) {
+      setIsFollowingUser(currentFollowing);
     }
-  }, [currentPage, page, params?.username, router, tab, totalPages]);
+  }, [currentFollowing]);
 
-  const fetchProfileAndArticles = async (username: string) => {
+  useEffect(() => {
+    setIsTabMyArticles(currentTab === "true");
+  }, [currentTab]);
+
+  useEffect(() => {
+    if (currentPage > totalArticlePages) {
+      router.push(
+        `/profile/${params?.username}?page=${currentPage}&tab=${currentTab}`
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    currentPage,
+    totalArticlePages,
+    params?.username,
+    router,
+    currentTab,
+  ]);
+
+  const fetchUserDataAndArticles = async (username: string) => {
     try {
       await getProfile(username);
-      if (isTapbarMyArticles) {
-        await fetchArticlesByUser(username, currentPage);
-      } else {
-        await fetchArticlesByFavorited(username, currentPage);
-      }
+      await fetchUserArticles(username, currentPage);
     } catch (error) {
       console.log(error);
     }
   };
 
-  const fetchArticlesByUser = async (username: string, page: number) => {
+  const fetchUserArticles = async (username: string, page: number) => {
     try {
       const response = await axios.get(
-        `/api/articles?author=${username}&limit=5&page=${page}`
+        `/api/articles?${
+          isTabMyArticles ? `author=${username}` : `favorited=${username}`
+        }&limit=5&page=${page}`
       );
       if (response.status === 200) {
-        setArticles(response.data.article);
-        setTotalPages(response.data.totalPages);
+        setUserArticles(response.data.article);
+        setTotalArticlePages(response.data.totalPages);
       }
     } catch (error) {
       console.log(error);
     }
   };
 
-  const fetchArticlesByFavorited = async (username: string, page: number) => {
-    try {
-      const response = await axios.get(
-        `/api/articles?favorited=${username}&limit=5&page=${page}`
-      );
-      if (response.status === 200) {
-        setArticles(response.data.article);
-        setTotalPages(response.data.totalPages);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleToggleFollow = () => {
-    following
-      ? toggleFollowStatus("unfollow", params?.username)
-      : toggleFollowStatus("follow", params?.username);
+  const toggleFollowUserAction = () => {
+    toggleFollowStatus(
+      isFollowingUser ? "unfollow" : "follow",
+      params?.username
+    );
   };
 
   return (
     <>
-      <div className="profile-page">
-        <div className="user-info">
-          <div className="container">
-            <div className="row">
-              <div className="col-xs-12 col-md-10 offset-md-1">
-                <Image
-                  src={user?.image || defaultImage}
-                  alt="avatar"
-                  width={100}
-                  height={100}
-                  className="user-img"
-                />
-                <h4>{user?.username}</h4>
-                <p>{user?.bio}</p>
-                {currentUser?.username === params?.username ? (
-                  <>
+      {userProfile && (
+        <div className="profile-page">
+          <div className="user-info">
+            <div className="container">
+              <div className="row">
+                <div className="col-xs-12 col-md-10 offset-md-1">
+                  <Image
+                    src={userProfile.image || defaultImage}
+                    alt="avatar"
+                    width={100}
+                    height={100}
+                    className="user-img"
+                  />
+                  <h4>{userProfile.username}</h4>
+                  <p>{userProfile.bio}</p>
+                  {currentUser?.username === params?.username ? (
                     <button
                       className="btn btn-sm btn-outline-secondary action-btn"
-                      onClick={() => {
-                        router.push("/settings");
-                      }}
+                      onClick={() => router.push("/settings")}
                     >
-                      <i className="ion-gear-a"></i>
-                      &nbsp; Edit Profile Settings
+                      <i className="ion-gear-a"></i>&nbsp; Edit Profile Settings
                     </button>
-                  </>
-                ) : (
-                  currentUser && (
-                    <>
+                  ) : (
+                    currentUser && (
                       <button
                         disabled={isFollowLoading}
                         className="btn btn-sm btn-outline-secondary action-btn"
-                        onClick={handleToggleFollow}
+                        onClick={toggleFollowUserAction}
                       >
-                        <i className="ion-plus-round"></i>
-                        &nbsp; {following ? "unfollow" : "follow"}{" "}
-                        {user?.username}
+                        <i className="ion-plus-round"></i>&nbsp;{" "}
+                        {isFollowingUser ? "unfollow" : "follow"}{" "}
+                        {userProfile.username}
                       </button>
-                    </>
-                  )
-                )}
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="container">
+            <div className="row">
+              <div className="col-xs-12 col-md-10 offset-md-1">
+                <div className="articles-toggle">
+                  <ul className="nav nav-pills outline-active">
+                    <li
+                      className="nav-item"
+                      onClick={() => setIsTabMyArticles(true)}
+                    >
+                      <div
+                        className={`nav-link cursor-pointer ${
+                          isTabMyArticles && "active"
+                        }`}
+                      >
+                        My Articles
+                      </div>
+                    </li>
+                    <li
+                      className="nav-item"
+                      onClick={() => setIsTabMyArticles(false)}
+                    >
+                      <div
+                        className={`nav-link cursor-pointer ${
+                          !isTabMyArticles && "active"
+                        }`}
+                      >
+                        Favorited Articles
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+
+                <ArticlesContainer
+                  articles={userArticles}
+                  currentUser={currentUser}
+                />
+
+                <Paginator
+                  totalPages={totalArticlePages}
+                  page={currentPage}
+                  redirect={`/profile/${params?.username}`}
+                  query={`&tab=${isTabMyArticles}`}
+                />
               </div>
             </div>
           </div>
         </div>
-
-        <div className="container">
-          <div className="row">
-            <div className="col-xs-12 col-md-10 offset-md-1">
-              <div className="articles-toggle">
-                <ul className="nav nav-pills outline-active">
-                  <li
-                    className="nav-item"
-                    onClick={() => setIsTapbarMyArticles(true)}
-                  >
-                    <div
-                      className={`nav-link cursor-pointer ${
-                        isTapbarMyArticles && "active"
-                      }`}
-                    >
-                      My Articles
-                    </div>
-                  </li>
-                  <li
-                    className="nav-item"
-                    onClick={() => setIsTapbarMyArticles(false)}
-                  >
-                    <div
-                      className={`nav-link cursor-pointer ${
-                        !isTapbarMyArticles && "active"
-                      }`}
-                    >
-                      Favorited Articles
-                    </div>
-                  </li>
-                </ul>
-              </div>
-
-              <ArticlesContainer
-                articles={articles}
-                currentUser={currentUser}
-              />
-
-              <Paginator
-                totalPages={totalPages}
-                page={currentPage}
-                redirect={`/profile/${params?.username}`}
-                query={`&tab=${isTapbarMyArticles}`}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
     </>
   );
 };

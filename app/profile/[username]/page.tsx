@@ -8,7 +8,7 @@ const page = async ({ searchParams }: { searchParams: { page: string, tab: strin
   page = !page || page < 1 ? 1 : page;
   return (
     <>
-      <ProfilePage currentUser={currentUser} page={page} tab={searchParams.tab} />
+      <ProfilePage currentUser={currentUser} currentPage={page} currentTab={searchParams.tab} />
     </>
   );
 };
