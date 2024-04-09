@@ -7,17 +7,19 @@ type Props = {
   totalPages: number | undefined;
   page: number;
   redirect?: string;
-  query?: string
+  query?: string | undefined;
 };
 
-const Paginator = ({ totalPages = 1, page, redirect = "", query }: Props) => {
-  const router = useRouter();
+const Paginator = ({ totalPages = 1, page, redirect = "", query="" }: Props) => {
   return (
     <>
       <ul className="pagination">
         {Array.from({ length: totalPages }, (_, i) => (
           <li key={i} className={`page-item ${page === i + 1 && "active"}`}>
-            <Link className="page-link" href={`${redirect}/?page=${i + 1}${typeof query === "string" && `&${query}` }`}>
+            <Link
+              className="page-link"
+              href={`${redirect}/?page=${i + 1}${query && `&${query}`}`}
+            >
               {i + 1}
             </Link>
           </li>
@@ -28,4 +30,3 @@ const Paginator = ({ totalPages = 1, page, redirect = "", query }: Props) => {
 };
 
 export default Paginator;
-
