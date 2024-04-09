@@ -64,7 +64,7 @@ const ProfilePage = ({
   useEffect(() => {
     if (currentPage > totalArticlePages) {
       router.push(
-        `/profile/${params?.username}?page=${currentPage}&tab=${currentTab}`
+        `/profile/${params?.username}?page=${1}&tab=${currentTab}`
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
